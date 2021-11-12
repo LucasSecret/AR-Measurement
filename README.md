@@ -1,5 +1,5 @@
 # AR-Measurement
-AR Project to measure shapes, distance and areas. Built for Android on Unity 
+AR project to create shapes, measure distances and areas. Built for Android on Unity 
 
 
 # How to use it ?
