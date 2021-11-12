@@ -7,5 +7,8 @@ Third-party plugins used in this project are ARCore (for AR) and Android Logs Vi
 
 ![alt text](https://github.com/LucasSecret/AR-Measurement/blob/master/Assets/Images/1636709612801.jpg)
 ![alt text](https://github.com/LucasSecret/AR-Measurement/blob/master/Assets/Images/1636709612834.jpg)
+
+
 # How to use it ?
 
+Click the menu button ![alt text](https://github.com/LucasSecret/AR-Measurement/blob/master/Assets/Images/icons8-menu-48.png)
