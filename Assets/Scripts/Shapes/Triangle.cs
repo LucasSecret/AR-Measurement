@@ -70,6 +70,15 @@ public class Triangle : MonoBehaviour
         triangles.Add(1);
         triangles.Add(2);
 
+        //Duplicate triangles for double side
+        triangles.Add(2);
+        triangles.Add(1);
+        triangles.Add(0);
+
+
+
+
+
         mesh.vertices = vertices.ToArray();
         mesh.triangles = triangles.ToArray();
     }

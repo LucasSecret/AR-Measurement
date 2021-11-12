@@ -87,6 +87,9 @@ public class Line : MonoBehaviour
         Draw();
 
         _textsList.Add(Instantiate(_uiManager.textInfosPrefab, _uiManager.transform));
+
+     
+
     }
 
 

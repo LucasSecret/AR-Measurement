@@ -239,16 +239,28 @@ public class Box : MonoBehaviour
         { 
             0, 1, 2, //Back face
             0, 2, 3,
+            2, 1, 0,
+            3, 2, 0,
             4, 5, 6, //Top face
             4, 6, 7,
+            6, 5, 4,
+            7, 6, 4,
             0, 1, 5, //Right Face
             0, 5, 4,
+            5, 1, 0,
+            4, 5, 0,
             2, 3, 7, //Left Face
             2, 7, 6,
+            7, 3, 2,
+            6, 7, 2,
             1, 2, 6, //Back Face
             1, 6, 5,
+            6, 2, 1, 
+            5, 6, 1,
             3, 0, 7, //Front Face
-            3, 7, 4
+            3, 7, 4,
+            7, 0, 3,
+            4, 7, 3
         };
 
         List<Vector3> normalsList = new List<Vector3>();

@@ -39,7 +39,6 @@ public class Polygon : MonoBehaviour
             _verticesList.Add(vertex);
             vertex.transform.SetParent(this.transform);
         }
-        _verticesList.Add(_verticesList[0]);
         Draw();
         CreateTexts();
     }
@@ -47,7 +46,6 @@ public class Polygon : MonoBehaviour
 
     public void EndShape()
     {
-        _verticesList.Add(_verticesList[0]);
         Draw();
     }
 
@@ -62,10 +60,10 @@ public class Polygon : MonoBehaviour
 
     private void DrawEdges()
     {
-        _lineRenderer.positionCount = _verticesList.Count;
+        _lineRenderer.positionCount = (_verticesList.Count > 2) ? _verticesList.Count + 1 : _verticesList.Count;
 
-        for (int i = 0; i < _verticesList.Count; i++)
-            _lineRenderer.SetPosition(i, _verticesList[i].transform.position);
+        for (int i = 0; i < _lineRenderer.positionCount; i++)
+            _lineRenderer.SetPosition(i, _verticesList[i%_verticesList.Count].transform.position);
     }
 
 
@@ -74,20 +72,25 @@ public class Polygon : MonoBehaviour
         Mesh mesh = GetComponent<MeshFilter>().mesh;
         mesh.Clear();
 
+        if (_verticesList.Count < 3)
+            return;
+
         List<Vector3> vertices = new List<Vector3>();
 
-        for (int i = 0; i < _verticesList.Count-1; i++)
+        for (int i = 0; i < _verticesList.Count; i++)
             vertices.Add(transform.InverseTransformPoint(_verticesList[i].transform.position));
         
-        //foreach (GameObject vertexPosition in _verticesList)
-        //    vertices.Add(transform.InverseTransformPoint(vertexPosition.transform.position));
-
         List<int> triangles = new List<int>();
         for (int i=0; i< vertices.Count -2; i++)
         {
             triangles.Add(0);
             triangles.Add(i + 1);
             triangles.Add(i + 2);
+
+            //Duplicate triangles for double side
+            triangles.Add(i + 2);
+            triangles.Add(i + 1);
+            triangles.Add(0);
         }
 
         List<Vector3> normalsList = new List<Vector3>();
@@ -111,7 +114,8 @@ public class Polygon : MonoBehaviour
         for (int i = 0; i < _verticesList.Count - 1; i++)
             _textsList.Add(Instantiate(_uiManager.textInfosPrefab, _uiManager.transform));
 
-        _surfaceText = Instantiate(_uiManager.textSpecialeInfosPrefab, _uiManager.transform);
+        if(_verticesList.Count > 2)
+            _surfaceText = Instantiate(_uiManager.textSpecialeInfosPrefab, _uiManager.transform);
 
         _textsAreCreated = true;
     }
@@ -120,48 +124,46 @@ public class Polygon : MonoBehaviour
     private void UpdateTexts()
     {
         float surface = 0.0f;
-        Vector3 surfacePosition = Vector3.zero;
+        Vector3 surfaceTextPosition = Vector3.zero;
 
         for (int i = 0; i < _textsList.Count; i++)
         {
-            float distance = Vector3.Distance(_verticesList[i].transform.position, _verticesList[i + 1].transform.position);
+            float distance = Vector3.Distance(_verticesList[i].transform.position, _verticesList[(i + 1)%_verticesList.Count].transform.position);
             _textsList[i].GetComponentInChildren<Text>().text = (distance * 100).ToString() + " cm";
-            _textsList[i].transform.position = Camera.main.WorldToScreenPoint((_verticesList[i].transform.position + _verticesList[i + 1].transform.position) / 2);
+            _textsList[i].transform.position = Camera.main.WorldToScreenPoint((_verticesList[i].transform.position + _verticesList[(i + 1)%_verticesList.Count].transform.position) / 2);
 
-            RotateTextToFaceCamera(_textsList[i], _verticesList[i], _verticesList[i + 1]);
+            RotateTextToFitLine(_textsList[i], _verticesList[i], _verticesList[(i + 1) % _verticesList.Count]);
 
             if(i+2 < _textsList.Count)
                 surface += TriangleArea(_verticesList[0], _verticesList[i + 1], _verticesList[i + 2]);
 
-            surfacePosition += _textsList[i].transform.position;
+            surfaceTextPosition += _textsList[i].transform.position;
         }
 
+        if (!_surfaceText.GetComponentInChildren<Text>())
+            return;
+
         _surfaceText.GetComponentInChildren<Text>().text = surface.ToString() + " m²";
-        _surfaceText.transform.position = surfacePosition / _textsList.Count;
+        _surfaceText.transform.position = surfaceTextPosition / _textsList.Count;
     }
 
 
-    private void RotateTextToFaceCamera(GameObject text, GameObject vertexFrom, GameObject vertexTo)
+    private void RotateTextToFitLine(GameObject text, GameObject vertexFrom, GameObject vertexTo)
     {
         Quaternion rotationToBeAligned;
 
-        Vector3 positionFrom = vertexFrom.transform.position;
-        Vector3 positionTo = vertexTo.transform.position;
+        Vector3 positionFrom = Camera.main.WorldToScreenPoint(vertexFrom.transform.position);
+        Vector3 positionTo = Camera.main.WorldToScreenPoint(vertexTo.transform.position);
 
-        rotationToBeAligned = Quaternion.FromToRotation(text.transform.right,
-                                                           Camera.main.WorldToScreenPoint(positionTo) -
-                                                           Camera.main.WorldToScreenPoint(positionFrom));
+        rotationToBeAligned = Quaternion.FromToRotation(text.transform.right, positionTo - positionFrom);
 
         text.transform.rotation = rotationToBeAligned * text.transform.rotation;
-
-        if (positionFrom.x > positionTo.x)
-            text.transform.rotation *= Quaternion.Euler(0, 180, 0);
     }
 
 
 
 
-
+    //Return the area of a triangle 
     private float TriangleArea(GameObject vertexA, GameObject vertexB, GameObject vertexC)
     { 
 
@@ -185,11 +187,17 @@ public class Polygon : MonoBehaviour
 
     public void AddVertice(GameObject vertex)
     {
-        _verticesList.Insert(_verticesList.Count - 1, vertex);
+        _verticesList.Add(vertex);
         vertex.transform.SetParent(this.transform);
         Draw();
 
         _textsList.Add(Instantiate(_uiManager.textInfosPrefab, _uiManager.transform));
+
+        if (_verticesList.Count == 3)
+        {
+            _textsList.Add(Instantiate(_uiManager.textInfosPrefab, _uiManager.transform));
+            _surfaceText = Instantiate(_uiManager.textSpecialeInfosPrefab, _uiManager.transform);
+        }
     }
     
    
@@ -219,19 +227,14 @@ public class Polygon : MonoBehaviour
         if (_verticesList.Count < 3)
         {
             foreach (GameObject vertex in _verticesList)
-            {
-                if(vertex)
-                    Destroy(vertex);
-            }
+                Destroy(vertex);
+            
             _verticesList.Clear();
             Destroy(this.gameObject);
         }
 
         else
         {
-            if (vertexToDestroy == _verticesList[0])
-                _verticesList.RemoveAt(_verticesList.Count-1);
-
             _verticesList.Remove(vertexToDestroy);
             Destroy(vertexToDestroy);
             Draw();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
+//Enum used to define which type of shape user want to draw
 public enum WANTED_SHAPE
 {
     LINE,
@@ -21,14 +22,13 @@ public class ShapesManager : MonoBehaviour
     public GameObject _squarePrefab;
     public GameObject _boxPrefab;
     public GameObject _polygonPrefab;
+     
+    public GameObject _shapeVerticePrefabs; 
+    public GameObject _shapesContainer; 
 
-    public GameObject _shapeVerticePrefabs;
-    public GameObject _shapesContainer;
-
-    public Material _classicVertexMaterial;
-    public Material _hoverVertexMaterial;
-    public Material _movingVertexMaterial;
-
+    public Material _classicVertexMaterial; //The classic material of vertex (black one)
+    public Material _hoverVertexMaterial; //The material set to the vertex when the user hovers it (green one)
+    public Material _movingVertexMaterial; //The material set to the vertex when the user moves it (blue one)
 
     private List<GameObject> _verticesCreated = new List<GameObject>();
 
@@ -38,6 +38,8 @@ public class ShapesManager : MonoBehaviour
     private Polygon _currentPolygon;
 
 
+
+    //Called to instantiate a vertex, and create a shape if the number of vertices created correspond to the selected shape
     public void PlaceVertex(Vector3 hitPosition)
     {
         GameObject vertex = Instantiate(_shapeVerticePrefabs, hitPosition, Quaternion.Euler(90, 0, 0));
@@ -51,13 +53,14 @@ public class ShapesManager : MonoBehaviour
 
         else vertex.GetComponent<VertexType>().ShapeType = VERTEX_SHAPE_TYPE.NOT_AFFECTED_YET;
 
+        //Create a shape according to the wanted shape and the number of vertices created
         switch (_wantedShape)
         {
             case WANTED_SHAPE.LINE:
                 if (_verticesCreated.Count == 2 && !_currentLine)
                     CreateLine();
 
-                else if (_verticesCreated.Count > 2 &&  _currentLine)
+                else if (_verticesCreated.Count > 2 &&  _currentLine) //If a line is currently been drawing
                     _currentLine.AddVertice(vertex);
                 break;
 
@@ -80,7 +83,7 @@ public class ShapesManager : MonoBehaviour
                 if (_verticesCreated.Count == 2 && !_currentPolygon)
                     CreatePolygon();
 
-                else if (_verticesCreated.Count > 2 && _currentPolygon)
+                else if (_verticesCreated.Count > 2 && _currentPolygon) //If a polygon is currently been drawing
                     _currentPolygon.AddVertice(vertex);
                 break;
 
@@ -95,13 +98,13 @@ public class ShapesManager : MonoBehaviour
        
     }
 
-
-    public bool UserCanEndLine()
+    //Return true if the user can end the current line or polygon (i.e the user created a sufficent number of vertex)
+    public bool UserCanEndLine() 
     {
         return (_wantedShape == WANTED_SHAPE.LINE || _wantedShape == WANTED_SHAPE.POLYGON) && _verticesCreated.Count >= 2;
     }
 
-
+    //Called when user want to end the current line or polygon
     public void EndLine()
     {
         _verticesCreated.Clear();
